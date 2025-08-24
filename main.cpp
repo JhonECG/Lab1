@@ -110,12 +110,40 @@ public:
     VariableRecordFile(const string& dataFile, const string& metaFile) {
         dataFilename = dataFile;
         metaFilename = metaFile;
-        loadMetadata();
     }
 
     vector<Matricula> load() {
         // TODO: devolver todos los registros activos
-        return {};
+        vector<Matricula> res;
+        auto metadata = loadMetadata();
+        ifstream dataFile(dataFilename, ios::binary);
+        if (!dataFile.is_open()) return res;
+
+        for (const auto& entry : metadata) {
+            if (entry.active) continue;
+
+            dataFile.seekg(static_cast<streamoff>(entry.pos), ios::beg);
+            int codesize;
+            int ciclo;
+            float mensualidad;
+            int obsize;
+
+            dataFile.read(reinterpret_cast<char*>(&codesize), sizeof(int));
+            string codigo(codesize, '\0');
+            dataFile.read(&codigo[0], codesize);
+
+            dataFile.read(reinterpret_cast<char*>(&ciclo), sizeof(int));
+
+            dataFile.read(reinterpret_cast<char*>(&mensualidad), sizeof(float));
+
+            dataFile.read(reinterpret_cast<char*>(&obsize), sizeof(int));
+            string observaciones(obsize, '\0');
+            dataFile.read(&observaciones[0], obsize);
+
+            res.push_back({codigo, ciclo, mensualidad, observaciones});
+        }
+
+        return res;
     }
 
     void add(const Matricula& record) {
