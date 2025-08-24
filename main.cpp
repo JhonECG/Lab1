@@ -11,30 +11,15 @@ class Matricula {
     string observaciones;
 
 public:
-    void setCodigo(const string& c) {
-        codigo = c;
-    }
-    void setCiclo(int c) {
-        ciclo = c;
-    }
-    void setMensualidad(float m) {
-        mensualidad = m;
-    }
-    void setObservaciones(const string& o) {
-        observaciones = o;
-    }
-    string getCodigo() const {
-        return codigo;
-    }
-    int getCiclo() const {
-        return ciclo;
-    }
-    float getMensualidad() const {
-        return mensualidad;
-    }
-    string getObservaciones() const {
-        return observaciones;
-    }
+    Matricula() = default;
+    Matricula(const string& c, int ci, float m, const string& o)
+        : codigo(c), ciclo(ci), mensualidad(m), observaciones(o) {}
+
+    const string& getCodigo() const {return codigo;}
+    int getCiclo() const {return ciclo;}
+    float getMensualidad() const {return mensualidad;}
+    const string& getObservaciones() const {return observaciones;}
+    // lo puse mejor con const string& por mejor practica de programación (perdom me dio amsiedad)
 
     string pack() const {
         string data;
