@@ -87,7 +87,7 @@ private:
         ofstream metaFile(metaFilename, ios::binary | ios::trunc);
         for (const auto& entry : metadata) {
             metaFile.write(reinterpret_cast<const char*>(&entry), sizeof(MetadataEntry));
-            // nose esto capaz esta mal me lo dio por defecto el copilot
+            // nose esto capaz esta mal me lo dio por defecto el copilot xd
         }
     }
 
