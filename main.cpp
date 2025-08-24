@@ -130,6 +130,11 @@ public:
 
     void remove(int pos) {
         // TODO: eliminar registro en posición pos
+        if (pos < 0 || pos >= static_cast<int>(metadata.size())) {
+            return;
+        }
+        metadata[pos].active = false;
+        saveMetadata();
     }
 };
 
