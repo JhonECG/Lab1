@@ -4,6 +4,12 @@
 #include <string>
 using namespace std;
 
+struct MetadataEntry {
+    long offset;
+    long size;
+    bool active;
+};
+
 class Matricula {
     string codigo;
     int ciclo;
@@ -23,14 +29,17 @@ public:
 
     string pack() const {
         string data;
+
         int len_codigo = codigo.size();
         int len_obs = observaciones.size();
+
         data.append(reinterpret_cast<const char*>(&len_codigo), sizeof(int));
         data.append(codigo);
         data.append(reinterpret_cast<const char*>(&ciclo), sizeof(int));
         data.append(reinterpret_cast<const char*>(&mensualidad), sizeof(float));
         data.append(reinterpret_cast<const char*>(&len_obs), sizeof(int));
         data.append(observaciones);
+
         return data;
     }
 
@@ -54,11 +63,7 @@ public:
     }
 };
 
-struct MetadataEntry {
-    long offset;
-    long size;
-    bool active;
-};
+/*jaja ayuda, estoy quemando*/
 
 class VariableRecordFile {
 private:
@@ -68,16 +73,44 @@ private:
 
     void loadMetadata() {
         // TODO: leer metadata desde archivo
+        metadata.clear();
+        ifstream metaFile(metaFilename, ios::binary);
+        MetadataEntry entry;
+        while (metaFile.read(reinterpret_cast<char*>(&entry), sizeof(MetadataEntry))) {
+            metadata.push_back(entry);
+        }
+        // aca si es copilot, exepto por la limpieza, eso si le añadi por si las moscas de la mem xd
     }
 
     void saveMetadata() {
         // TODO: guardar metadata en archivo
+        ofstream metaFile(metaFilename, ios::binary | ios::trunc);
+        for (const auto& entry : metadata) {
+            metaFile.write(reinterpret_cast<const char*>(&entry), sizeof(MetadataEntry));
+            // nose esto capaz esta mal me lo dio por defecto el copilot
+        }
     }
+
+/* este si lo hice yo
+    void saveMetadata() {
+
+        ofstream metaFile(metaFilename, ios::binary | ios::trunc);
+        if (!metaFile.is_open()) {
+            return;
+        }
+        for (const MetadataEntry& entry : metadata) {
+            metaFile.write(reinterpret_cast<const char*>(&entry.offset), sizeof(long));
+            metaFile.write(reinterpret_cast<const char*>(&entry.size), sizeof(long));
+            metaFile.write(reinterpret_cast<const char*>(&entry.active), sizeof(bool));
+        }
+    }
+*/
 
 public:
     VariableRecordFile(const string& dataFile, const string& metaFile) {
         dataFilename = dataFile;
         metaFilename = metaFile;
+        loadMetadata();
     }
 
     vector<Matricula> load() {
@@ -87,6 +120,7 @@ public:
 
     void add(const Matricula& record) {
         // TODO: agregar un registro O(1)
+
     }
 
     Matricula readRecord(int pos) {
