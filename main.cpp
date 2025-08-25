@@ -115,14 +115,15 @@ public:
     vector<Matricula> load() {
         // TODO: devolver todos los registros activos
         vector<Matricula> res;
-        auto metadata = loadMetadata();
+        loadMetadata();
         ifstream dataFile(dataFilename, ios::binary);
         if (!dataFile.is_open()) return res;
 
         for (const auto& entry : metadata) {
             if (entry.active) continue;
 
-            dataFile.seekg(static_cast<streamoff>(entry.pos), ios::beg);
+            dataFile.seekg(entry.offset, ios::beg);
+
             int codesize;
             int ciclo;
             float mensualidad;
