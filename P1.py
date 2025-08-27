@@ -85,9 +85,12 @@ class FixedRecord_MoveTheLast:
         return res
 
     def add(self, record):
-        with open(self.filename, 'ab') as f:
-            data = record.pack()
+        data = record.pack()    
+        with open(self.filename, 'r+b') as f:
+            f.seek(0, 2)
+            pos = f.tell() // Record.FORMAT_SIZE
             f.write(data)
+            return pos
     
     def readRecord(self, pos):
         with open(self.filename, 'rb') as f:
@@ -106,4 +109,5 @@ class FixedRecord_MoveTheLast:
                 last_record_data = f.read(Record.FORMAT_SIZE)
                 f.seek(pos * Record.FORMAT_SIZE)
                 f.write(last_record_data)
+
             f.truncate(end_pos * Record.FORMAT_SIZE)
