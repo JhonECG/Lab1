@@ -27,7 +27,20 @@ class Record:
 class FixedRecord_FreeList:
     def __init__(self, filename):
         self.filename = filename
-        self.free_positions = []
+        open(self.filename, 'ab').close()
+
+    def get_free_positions(self):
+        free_positions = []
+        with open(self.filename, 'rb') as f:
+            current_pos = 0
+            while True:
+                data = f.read(Record.FORMAT_SIZE)
+                if not data or len(data) < Record.FORMAT_SIZE:
+                    break
+                if all(x == 0 for x in data):
+                    free_positions.append(current_pos)
+                current_pos += 1
+        return free_positions
 
     def load(self):
         res = []
@@ -40,20 +53,19 @@ class FixedRecord_FreeList:
                 res.append(record)
         return res
     
-    def addRecord(self, record: Record):
-        with open(self.filename, 'ab') as f:
-            data = record.pack()
-            f.write(data)
-
     def add(self, record):
-        if self.free_positions:
-            pos = self.free_positions.pop(0)
-            with open(self.filename, 'r+b') as f:
+        free_positions = self.get_free_positions()
+        data = record.pack()
+        
+        with open(self.filename, 'r+b') as f:
+            if free_positions:
+                pos = free_positions[0]
                 f.seek(pos * Record.FORMAT_SIZE)
-                data = record.pack()
-                f.write(data)
-        else:
-            self.addRecord(record)
+            else:
+                f.seek(0, 2)
+                pos = f.tell() // Record.FORMAT_SIZE
+            f.write(data)
+            return pos
 
     def readRecord(self, pos):
         with open(self.filename, 'rb') as f:
@@ -62,13 +74,12 @@ class FixedRecord_FreeList:
             if not data:
                 return None
             return Record.unpack(data)
-    
+
     def remover(self, pos):
         with open(self.filename, 'r+b') as f:
             f.seek(pos * Record.FORMAT_SIZE)
             f.write(b'\x00' * Record.FORMAT_SIZE)
-        self.free_positions.append(pos)
-    
+
 class FixedRecord_MoveTheLast:
     def __init__(self, filename):
         self.filename = filename
